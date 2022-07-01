@@ -1,0 +1,23 @@
+{
+    "buiminh": {
+        "note": [
+            {
+                "_id": 2,
+                "title": "1231",
+                "content": "123123"
+            }
+        ],
+        "file": [
+            {
+                "_id": 3,
+                "name": "Chuong 3_Khong gian vecto.pdf"
+            }
+        ],
+        "image": [
+            {
+                "_id": 1,
+                "name": "23281_a320m_hdv_l1_.png"
+            }
+        ]
+    }
+}

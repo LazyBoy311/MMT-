@@ -1,0 +1,292 @@
+from http import client
+from tkinter import *
+from tkinter import messagebox
+from tkinter import ttk
+from tkinter.filedialog import askopenfilename
+from tkinter.constants import *
+from PIL import ImageTk, Image
+import socket
+import threading
+import json
+import os
+
+HOST = '127.0.0.1'
+PORT = 1233
+FORMAT = 'ascii'
+
+
+class NoteApp():
+    def __init__(self, root, client, user_info):
+        self.client = client
+        self.running = True
+        self.gui_done = False
+
+        gui_thread = threading.Thread(target=self.gui_loop(root, user_info))
+
+        gui_thread.start()
+
+    def gui_loop(self, root, user_info):
+        self.user_info = eval(user_info)
+        self.root = root
+        self.root.title('E-NOTE')
+        self.root.iconbitmap('images/note.ico')
+        self.root.geometry('800x600')
+        self.root.config(bg='#fff')
+        self.root.resizable(False, False)
+
+        # # Background image
+        self.bg = ImageTk.PhotoImage(file='images/blank_bg.png')
+        self.bg_img = Label(self.root, image=self.bg,
+                            bg='white').place(x=0, y=0)
+
+        # NoteApp Frame
+        self.frame = Frame(self.root, width=800, height=200, bg='white')
+        self.frame.place(x=30, y=140)
+
+        #================== List Notes ======================#
+        # self.tree = ttk.Treeview(self.root, show='headings')
+        columns = ('id', 'type', 'content')
+        # self.tree['columns'] = ('id', 'type', 'content')
+        self.tree = ttk.Treeview(
+            self.root, columns=columns, show='headings')
+        self.tree.column("id", anchor=CENTER, width=80)
+        self.tree.column("type", anchor=CENTER, width=200)
+        self.tree.column("content", anchor=W, width=400)
+        # define headings
+        self.tree.heading('id', text='ID')
+        self.tree.heading('type', text='TYPE')
+        self.tree.heading('content', text='CONTENT')
+
+        self.tree.grid(row=0, column=0, sticky=NSEW)
+        self.tree.place(x=60, y=140)
+        # add a scrollbar
+        scrollbar = ttk.Scrollbar(
+            self.root, orient=VERTICAL, command=self.tree.yview)
+        self.tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=0, column=1, sticky='ns')
+
+        # self.listbox_tasks = Listbox(
+        #     self.frame, height=10, width=67, font=('Helvetica', 14, 'bold'), activestyle="none")
+        # self.listbox_tasks.pack(side=LEFT)
+
+        # self.scrollbar_tasks = Scrollbar(self.frame)
+        # self.scrollbar_tasks.pack(side=RIGHT, fill=Y)
+
+        # self.listbox_tasks.config(yscrollcommand=self.scrollbar_tasks.set)
+        # self.scrollbar_tasks.config(command=self.listbox_tasks.yview)
+
+        #====================== Load Data ================================#
+        self.client_notes = self.client.recv(2048).decode(FORMAT)
+        self.client_notes = eval(self.client_notes)
+        notes = self.client_notes['note']
+        files = self.client_notes['file']
+        imgs = self.client_notes['image']
+        self.countID = 1
+        for note in notes:
+            self.tree.insert(
+                '', 'end', values=(note['_id'], "Text", f"[Topic: {note['title']}] : {note['content'] if len(note['content']) < 20 else note['content'][0:20:1] + '...'}"))
+            self.countID = max(self, note['_id']) + 1
+        for img in imgs:
+            self.tree.insert(
+                '', 'end', values=(img['_id'], "Image", f"[Name]: {img['name']}"))
+            self.countID = max(self, note['_id']) + 1
+        for file in files:
+            self.tree.insert(
+                '', 'end', values=(img['_id'], "File", f"[Name]: {img['name']}"))
+            self.countID = max(self, note['_id']) + 1
+        # ========================= Header =========================== #
+        # Brand name
+        self.frame1 = Frame(self.root, width=800, height=120, bg='white')
+        self.frame1.place(x=0, y=0)
+        self.heading = Label(self.frame1, text='E-NOTE', fg='#57a1f8',
+                             bg='white', font=('Helvetica', 35, 'bold'))
+        self.heading.place(x=320, y=2)
+        # User
+        self.user = Label(self.frame1, text=f'User: {self.user_info[1]}', fg='black',
+                          bg='white', font=('Helvetica', 16, 'bold'))
+        self.user.place(x=600, y=60)
+        #============= Buttons ====================#
+        self.frame2 = Frame(self.root, width=800, height=250, bg='white')
+        self.frame2.place(x=0, y=400)
+        self.add_txt_btn = Button(self.frame2, width=16, pady=8, text='Add Text',
+                                  cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.add_text)
+        self.add_txt_btn.place(x=650, y=20)
+
+        self.add_files_btn = Button(self.frame2, width=16, pady=8, text='Add file',
+                                    cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.add_file)
+        self.add_files_btn.place(x=650, y=80)
+
+        self.upload_img_btn = Button(self.frame2, width=16, pady=8, text='Upload Image',
+                                     cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.upload_image)
+        self.upload_img_btn.place(x=650, y=140)
+
+        self.delete_btn = Button(self.frame2, width=16, pady=8, text='Delete',
+                                 cursor="hand2", bg='red', fg='white', border=0, command=self.delete)
+        self.delete_btn.place(x=50, y=60)
+
+        self.view_btn = Button(self.frame2, width=16, pady=8, text='View',
+                               cursor="hand2", bg='green', fg='white', border=0, command=self.view)
+        self.view_btn.place(x=50, y=120)
+
+        #------------------------------------------------------#
+        self.gui_done = True
+        self.root.protocol("WM_DELETE_WINDOW", self.stop)
+        self.root.mainloop()
+
+    def stop(self):
+        self.running = False
+        self.root.destroy()
+        self.client.close()
+        exit(0)
+
+    def add_text(self):
+        self.win = Toplevel()
+        window_width = 500
+        window_height = 300
+        screen_width = self.win.winfo_screenwidth()
+        screen_height = self.win.winfo_screenheight()
+        position_top = int(screen_height / 4 - window_height / 4)
+        position_right = int(screen_width / 2 - window_width / 2)
+        self.win.geometry(
+            f'{window_width}x{window_height}+{position_right}+{position_top}')
+        self.win.title('Text')
+        self.win.configure(background='white')
+        self.win.resizable(0, 0)
+
+        self.topic_label = Label(self.win, text='Topic:', font=(
+            'Helvetica', 12, 'bold'), fg='black', bg='white')
+        self.topic_label.place(x=0, y=0)
+        self.topic_area = Text(self.win, height=1)
+        self.topic_area.config(font=("Helvetica", 14))
+        self.topic_area.pack(padx=(80, 20), pady=2)
+
+        self.input_label = Label(self.win, text='NOTES:', font=(
+            'Helvetica', 12, 'bold'), fg='black', bg='white')
+        self.input_label.place(x=0, y=130)
+        self.input_area = Text(self.win, height=10)
+        self.input_area.config(font=("Helvetica", 14))
+        self.input_area.pack(padx=(80, 20), pady=5)
+
+        self.send_btn = Button(self.win, text="Add note",
+                               command=self.write)
+        self.send_btn.config(font=("Helvetica", 14))
+        self.send_btn.pack(padx=20, pady=5)
+
+    def write(self):
+        while self.running:
+            # try:
+            self.note_topic = f"{self.topic_area.get('1.0', 'end').strip()}"
+            self.note = f"{self.input_area.get('1.0', 'end').strip()}"
+            self.user_note = str(
+                ["NOTE", self.user_info[1], self.note_topic, self.note, self.countID])
+            self.client.send(self.user_note.encode(FORMAT))
+            response = self.client.recv(2048).decode(FORMAT)
+            if response == "Note successfully created!":
+                if self.gui_done:
+                    self.tree.insert(
+                        '', 'end', values=(self.countID, "Text", f"[Topic: {self.note_topic}] : {self.note if len(self.note) < 20 else self.note[0:20:1] + '...'}"))
+                    self.countID += 1
+                    self.input_area.delete('1.0', 'end')
+                    messagebox.showinfo(None, response)
+                    self.win.destroy()
+                    break
+            elif response == "This title is already exist":
+                messagebox.showwarning(
+                    title="Warning!", message="This title is already exist")
+                break
+            else:
+                messagebox.showwarning(
+                    title="Warning!", message="You must enter a note!")
+                break
+            # except ConnectionAbortedError:
+            #     break
+            # except:
+            #     print("[ERROR]: An error occured!")
+            #     self.client.close()
+            #     break
+
+    def delete(self):
+        try:
+            self.task_index = self.tree.selection()[0]
+            self.id = self.tree.item(self.task_index)['values'][0]
+            self.type = self.tree.item(self.task_index)['values'][1]
+            self.client.send(
+                str(["DEL-NOTE", self.user_info[1], self.id, self.type]).encode(FORMAT))
+            self.tree.delete(self.task_index)
+        except:
+            messagebox.showwarning(
+                title="Warning!", message="You must select a note!")
+
+    def upload_image(self):
+        img_path = askopenfilename(title='Select Image',
+                                   filetypes=[("image", ".jpeg"),
+                                              ("image", ".png"),
+                                              ("image", ".jpg")])
+        img = img_path.split('/')
+        self.image = img[len(img) - 1]
+        while self.running:
+            self.user_image = str(
+                ["IMAGE", self.user_info[1], self.image, self.countID])
+            self.client.send(self.user_image.encode(FORMAT))
+            response = self.client.recv(2048).decode(FORMAT)
+            if response == "Image successfully created!":
+                with open(img_path, 'rb') as f:
+                    self.client.send(f.read())
+                    f.close()
+                if self.gui_done:
+                    self.tree.insert('', 'end', values=(
+                        self.countID, "Image", f"[Name]: {self.image}"))
+                    self.countID += 1
+                    messagebox.showinfo(None, response)
+                    break
+            elif response == "This title is already exist":
+                messagebox.showwarning(
+                    title="Warning!", message="This title is already exist")
+                break
+            else:
+                messagebox.showwarning(
+                    title="Warning!", message="You must enter a image!")
+                break
+
+    def view(self):
+        try:
+            self.task_index = self.tree.selection()[0]
+            self.id = self.tree.item(self.task_index)['values'][0]
+            self.type = self.tree.item(self.task_index)['values'][1]
+            self.client.send(
+                str(["VIEW", self.user_info[1], self.id, self.type]).encode(FORMAT))
+            self.tree.delete(self.task_index)
+        except:
+            messagebox.showwarning(
+                title="Warning!", message="You must select a note!")
+
+    def add_file(self):
+        file_path = askopenfilename(title='Select File',
+                                    filetypes=[('text files', '*.txt'),
+                                               ('All files', '*.*')]
+                                    )
+        file = file_path.split('/')
+        self.file = file[len(file) - 1]
+        while self.running:
+            self.user_file = str(
+                ["FILE", self.user_info[1], self.file, self.countID])
+            self.client.send(self.user_file.encode(FORMAT))
+            response = self.client.recv(2048).decode(FORMAT)
+            if response == "File successfully created!":
+                with open(file_path, 'rb') as f:
+                    self.client.send(f.read())
+                    f.close()
+                if self.gui_done:
+                    self.tree.insert('', 'end', values=(
+                        self.countID, "File", f"[Name]: {self.file}"))
+                    self.countID += 1
+                    messagebox.showinfo(None, response)
+                    break
+            elif response == "This title is already exist":
+                messagebox.showwarning(
+                    title="Warning!", message="This title is already exist")
+                break
+            else:
+                messagebox.showwarning(
+                    title="Warning!", message="You must enter a file!")
+                break
