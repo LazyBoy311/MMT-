@@ -92,7 +92,7 @@ class NoteApp():
             self.countID = max(self.countID, int(note['_id'])) + 1
         for file in files:
             self.tree.insert(
-                '', 'end', values=(img['_id'], "File", f"[Name]: {img['name']}"))
+                '', 'end', values=(file['_id'], "File", f"[Name]: {file['name']}"))
             self.countID = max(self.countID, int(note['_id'])) + 1
         print(self.countID)
         # ========================= Header =========================== #
