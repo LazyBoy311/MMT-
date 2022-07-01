@@ -117,25 +117,25 @@ def del_note(username, note_index, type):
     file.close()
 
 
-def view_note(username, note_id, type):
-    file = open("note.json")
-    users_note = json.load(file)
-    if type == "Image":
-        for user in users_note[username]["image"]:
-            if user["_id"] == note_id:
-                with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
-                    img = Image.open(f)
-                    img.show()
-                f.close()
-                break
-    elif type == "File":
-        for user in users_note[username]["file"]:
-            if user["_id"] == note_id:
-                with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
-                    img = Image.open(f)
-                    img.show()
-                f.close()
-                break
+# def view_note(username, note_id, type):
+#     file = open("note.json")
+#     users_note = json.load(file)
+#     if type == "Image":
+#         for user in users_note[username]["image"]:
+#             if user["_id"] == note_id:
+#                 with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
+#                     img = Image.open(f)
+#                     img.show()
+#                 f.close()
+#                 break
+#     elif type == "File":
+#         for user in users_note[username]["file"]:
+#             if user["_id"] == note_id:
+#                 with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
+#                     img = Image.open(f)
+#                     img.show()
+#                 f.close()
+#                 break
 
 
 def is_exist_note(username, title):
@@ -336,6 +336,26 @@ def handle(client):
                 note_index = user_data[2]
                 type = user_data[3]
                 del_note(name, note_index, type)
+            elif mode == "DOWNLOAD":
+                username = user_data[1]
+                note_index = user_data[2]
+                type = user_data[3]
+                file = open("note.json")
+                users_note = json.load(file)
+                if type == "Image":
+                    for user in users_note[username]["image"]:
+                        if user["_id"] == note_index:
+                            with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
+                                client.send(f.read())
+                                f.close()
+                            break
+                else:
+                    for user in users_note[username]["file"]:
+                        if user["_id"] == note_index:
+                            with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
+                                client.send(f.read())
+                                f.close()
+                            break
             elif mode == "IMAGE":
                 name = user_data[1]
                 image = user_data[2]
@@ -354,10 +374,28 @@ def handle(client):
                         client.send(
                             "This title is already exist".encode(FORMAT))
             elif mode == "VIEW":
-                name = user_data[1]
-                ID_file = user_data[2]
+                username = user_data[1]
+                note_id = user_data[2]
                 type = user_data[3]
-                view_note(name, ID_file, type)
+                #view_note(name, ID_file, type)
+                file = open("note.json")
+                users_note = json.load(file)
+                if type == "Image":
+                    for user in users_note[username]["image"]:
+                        print(f'./user_data/{username}/' + user["name"])
+                        if user["_id"] == note_id:
+                            with open(f'./user_data/{username}/' + user["name"], 'rb') as f:
+                                client.send(f.read())
+                                f.close()
+                            break
+                elif type == "File":
+                    for user in users_note[username]["file"]:
+                        if user["_id"] == note_id:
+                            with open(f'./user_data/{username}/' + user["name"], 'rb') as f:
+                                client.send(f.read())
+                                f.close()
+                            break
+
             elif mode == "FILE":
                 name = user_data[1]
                 file = user_data[2]

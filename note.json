@@ -34,6 +34,11 @@
             }
         ],
         "file": [],
-        "image": []
+        "image": [
+            {
+                "_id": 4,
+                "name": "gach-the-xam-nhat-mo-phang-10x20-m1202y.jpg"
+            }
+        ]
     }
 }
