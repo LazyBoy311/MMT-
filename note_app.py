@@ -85,15 +85,16 @@ class NoteApp():
         for note in notes:
             self.tree.insert(
                 '', 'end', values=(note['_id'], "Text", f"[Topic: {note['title']}] : {note['content'] if len(note['content']) < 20 else note['content'][0:20:1] + '...'}"))
-            self.countID = max(self, note['_id']) + 1
+            self.countID = max(self.countID, int(note['_id'])) + 1
         for img in imgs:
             self.tree.insert(
                 '', 'end', values=(img['_id'], "Image", f"[Name]: {img['name']}"))
-            self.countID = max(self, note['_id']) + 1
+            self.countID = max(self.countID, int(note['_id'])) + 1
         for file in files:
             self.tree.insert(
                 '', 'end', values=(img['_id'], "File", f"[Name]: {img['name']}"))
-            self.countID = max(self, note['_id']) + 1
+            self.countID = max(self.countID, int(note['_id'])) + 1
+        print(self.countID)
         # ========================= Header =========================== #
         # Brand name
         self.frame1 = Frame(self.root, width=800, height=120, bg='white')
