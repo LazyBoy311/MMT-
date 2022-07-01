@@ -101,7 +101,6 @@ def del_note(username, note_index, type):
     elif type == "Image":
         for user in users_note[username]["image"]:
             if user["_id"] == note_index:
-                print(user["name"])
                 os.remove(f"./user_data/{username}/" + user["name"])
                 users_note[username]["image"].remove(user)
                 break
@@ -167,6 +166,9 @@ def is_exist_file(username, files):
     file = open("note.json")
     users_file = json.load(file)
 
+    for user in users_file[username]["image"]:
+        if user["name"] == files:
+            return True
     for user in users_file[username]["file"]:
         if user["name"] == files:
             return True
