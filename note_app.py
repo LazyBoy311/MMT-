@@ -2,7 +2,7 @@ from http import client
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askdirectory, askopenfilename
 from tkinter.constants import *
 from PIL import ImageTk, Image
 import socket
@@ -89,11 +89,11 @@ class NoteApp():
         for img in imgs:
             self.tree.insert(
                 '', 'end', values=(img['_id'], "Image", f"[Name]: {img['name']}"))
-            self.countID = max(self.countID, int(note['_id'])) + 1
+            self.countID = max(self.countID, int(img['_id'])) + 1
         for file in files:
             self.tree.insert(
                 '', 'end', values=(file['_id'], "File", f"[Name]: {file['name']}"))
-            self.countID = max(self.countID, int(note['_id'])) + 1
+            self.countID = max(self.countID, int(file['_id'])) + 1
         # ========================= Header =========================== #
         # Brand name
         self.frame1 = Frame(self.root, width=800, height=120, bg='white')
@@ -110,28 +110,27 @@ class NoteApp():
         self.frame2.place(x=0, y=400)
         self.add_txt_btn = Button(self.frame2, width=16, pady=8, text='Add Text',
                                   cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.add_text)
-        self.add_txt_btn.place(x=650, y=0)
+        self.add_txt_btn.place(x=600, y=20)
 
         self.add_files_btn = Button(self.frame2, width=16, pady=8, text='Add file',
                                     cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.add_file)
-        self.add_files_btn.place(x=650, y=45)
+        self.add_files_btn.place(x=600, y=80)
 
         self.upload_img_btn = Button(self.frame2, width=16, pady=8, text='Upload Image',
                                      cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.upload_image)
-        self.upload_img_btn.place(x=650, y=87)
-
-        self.upload_download_btn = Button(self.frame2, width=16, pady=8, text='Download',
-                                          cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.download)
-        self.upload_download_btn.place(x=650, y=130)
+        self.upload_img_btn.place(x=600, y=140)
 
         self.delete_btn = Button(self.frame2, width=16, pady=8, text='Delete',
                                  cursor="hand2", bg='red', fg='white', border=0, command=self.delete)
-        self.delete_btn.place(x=50, y=30)
+        self.delete_btn.place(x=70, y=20)
 
         self.view_btn = Button(self.frame2, width=16, pady=8, text='View',
                                cursor="hand2", bg='green', fg='white', border=0, command=self.view)
-        self.view_btn.place(x=50, y=100)
+        self.view_btn.place(x=70, y=80)
 
+        self.download_btn = Button(self.frame2, width=16, pady=8, text='Download',
+                                   cursor="hand2", bg='#ad91e7', fg='white', border=0, command=self.download)
+        self.download_btn.place(x=70, y=140)
         #------------------------------------------------------#
         self.gui_done = True
         self.root.protocol("WM_DELETE_WINDOW", self.stop)
@@ -265,58 +264,66 @@ class NoteApp():
                 data = self.client.recv(41000000)
                 f.write(data)
                 # os.remove(self.namefile)
-                f.close
+                f.close()
             with open(self.namefile, 'rb') as f:
                 img = Image.open(f)
                 img.show()
-                f.close
+                f.close()
         except:
             messagebox.showwarning(
                 title="Warning!", message="You must select a note!")
 
     def download(self):
-        self.task_index = self.tree.selection()[0]
-        self.id = self.tree.item(self.task_index)['values'][0]
-        self.type = self.tree.item(self.task_index)['values'][1]
-        self.namefile = self.tree.item(self.task_index)['values'][2]
-        self.namefile = self.namefile[8:]
-        self.client.send(
-            str(["DOWNLOAD", self.user_info[1], self.id, self.type]).encode(FORMAT))
-        with open(self.namefile, 'wb') as f:
-            data = self.client.recv(41000000)
-            f.write(data)
-            f.close
+        file_input = askdirectory(title="Select Folder")
+        if file_input == "":
+            messagebox.showwarning(
+                title="Warning!", message="You must enter a file!")
+            return
+        try:
+            self.task_index = self.tree.selection()[0]
+            self.id = self.tree.item(self.task_index)['values'][0]
+            self.type = self.tree.item(self.task_index)['values'][1]
+            self.namefile = self.tree.item(self.task_index)['values'][2]
+            self.namefile = self.namefile[8:]
+            self.client.send(
+                str(["DOWNLOAD", self.user_info[1], self.id, self.type]).encode(FORMAT))
+            with open(f"{file_input}/{self.namefile}", 'wb') as f:
+                data = self.client.recv(41000000)
+                f.write(data)
+                f.close()
+        except:
+            messagebox.showwarning(
+                title="Warning!", message="You must enter a file!")
 
     def add_file(self):
         file_path = askopenfilename(title='Select File',
                                     filetypes=[('text files', '*.txt'),
                                                ('All files', '*.*')]
                                     )
+        if file_path == "":
+            return
         self.file = file_path.split('/')
         self.file = self.file[len(self.file) - 1]
-        if self.file != "":
-            while self.running:
-                self.user_file = str(
-                    ["FILE", self.user_info[1], self.file, self.countID])
-                self.client.send(self.user_file.encode(FORMAT))
-                response = self.client.recv(2048).decode(FORMAT)
-                if response == "File successfully created!":
-                    with open(file_path, 'rb') as f:
-                        self.client.send(f.read())
-                        f.close()
-                    if self.gui_done:
-                        self.tree.insert('', 'end', values=(
-                            self.countID, "File", f"[Name]: {self.file}"))
-                        self.countID += 1
-                        messagebox.showinfo(None, response)
-                        break
-                elif response == "This title is already exist":
-                    messagebox.showwarning(
-                        title="Warning!", message="This title is already exist")
+        while self.running:
+            self.user_file = str(
+                ["FILE", self.user_info[1], self.file, self.countID])
+            self.client.send(self.user_file.encode(FORMAT))
+            response = self.client.recv(2048).decode(FORMAT)
+            if response == "File successfully created!":
+                with open(file_path, 'rb') as f:
+                    self.client.send(f.read())
+                    f.close()
+                if self.gui_done:
+                    self.tree.insert('', 'end', values=(
+                        self.countID, "File", f"[Name]: {self.file}"))
+                    self.countID += 1
+                    messagebox.showinfo(None, response)
                     break
-                else:
-                    messagebox.showwarning(
-                        title="Warning!", message="You must enter a file!")
-                    break
-        else:
-            pass
+            elif response == "This title is already exist":
+                messagebox.showwarning(
+                    title="Warning!", message="This title is already exist")
+                break
+            else:
+                messagebox.showwarning(
+                    title="Warning!", message="You must enter a file!")
+                break

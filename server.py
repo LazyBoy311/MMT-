@@ -382,7 +382,7 @@ def handle(client):
                 users_note = json.load(file)
                 if type == "Image":
                     for user in users_note[username]["image"]:
-                        print(f'./user_data/{username}/' + user["name"])
+                        # print(f'./user_data/{username}/' + user["name"])
                         if user["_id"] == note_id:
                             with open(f'./user_data/{username}/' + user["name"], 'rb') as f:
                                 client.send(f.read())

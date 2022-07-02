@@ -42,14 +42,18 @@
         ]
     },
     "tunglam": {
-        "note": [
+        "note": [],
+        "file": [
             {
-                "_id": 1,
-                "title": "DCM PHAT",
-                "content": "CHAM VCL"
+                "_id": 5,
+                "name": "Lab 4.pdf"
             }
         ],
-        "file": [],
-        "image": []
+        "image": [
+            {
+                "_id": 6,
+                "name": "bg.jpg"
+            }
+        ]
     }
 }
