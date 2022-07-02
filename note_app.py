@@ -92,9 +92,8 @@ class NoteApp():
             self.countID = max(self.countID, int(note['_id'])) + 1
         for file in files:
             self.tree.insert(
-                '', 'end', values=(img['_id'], "File", f"[Name]: {img['name']}"))
+                '', 'end', values=(file['_id'], "File", f"[Name]: {file['name']}"))
             self.countID = max(self.countID, int(note['_id'])) + 1
-        print(self.countID)
         # ========================= Header =========================== #
         # Brand name
         self.frame1 = Frame(self.root, width=800, height=120, bg='white')
@@ -111,23 +110,27 @@ class NoteApp():
         self.frame2.place(x=0, y=400)
         self.add_txt_btn = Button(self.frame2, width=16, pady=8, text='Add Text',
                                   cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.add_text)
-        self.add_txt_btn.place(x=650, y=20)
+        self.add_txt_btn.place(x=650, y=0)
 
         self.add_files_btn = Button(self.frame2, width=16, pady=8, text='Add file',
                                     cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.add_file)
-        self.add_files_btn.place(x=650, y=80)
+        self.add_files_btn.place(x=650, y=45)
 
         self.upload_img_btn = Button(self.frame2, width=16, pady=8, text='Upload Image',
                                      cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.upload_image)
-        self.upload_img_btn.place(x=650, y=140)
+        self.upload_img_btn.place(x=650, y=87)
+
+        self.upload_download_btn = Button(self.frame2, width=16, pady=8, text='Download',
+                                          cursor="hand2", bg='#57a1f8', fg='white', border=0, command=self.download)
+        self.upload_download_btn.place(x=650, y=130)
 
         self.delete_btn = Button(self.frame2, width=16, pady=8, text='Delete',
                                  cursor="hand2", bg='red', fg='white', border=0, command=self.delete)
-        self.delete_btn.place(x=50, y=60)
+        self.delete_btn.place(x=50, y=30)
 
         self.view_btn = Button(self.frame2, width=16, pady=8, text='View',
                                cursor="hand2", bg='green', fg='white', border=0, command=self.view)
-        self.view_btn.place(x=50, y=120)
+        self.view_btn.place(x=50, y=100)
 
         #------------------------------------------------------#
         self.gui_done = True
@@ -254,12 +257,35 @@ class NoteApp():
             self.task_index = self.tree.selection()[0]
             self.id = self.tree.item(self.task_index)['values'][0]
             self.type = self.tree.item(self.task_index)['values'][1]
+            self.namefile = self.tree.item(self.task_index)['values'][2]
+            self.namefile = self.namefile[8:]
             self.client.send(
                 str(["VIEW", self.user_info[1], self.id, self.type]).encode(FORMAT))
-            self.tree.delete(self.task_index)
+            with open(self.namefile, 'wb') as f:
+                data = self.client.recv(41000000)
+                f.write(data)
+                # os.remove(self.namefile)
+                f.close
+            with open(self.namefile, 'rb') as f:
+                img = Image.open(f)
+                img.show()
+                f.close
         except:
             messagebox.showwarning(
                 title="Warning!", message="You must select a note!")
+
+    def download(self):
+        self.task_index = self.tree.selection()[0]
+        self.id = self.tree.item(self.task_index)['values'][0]
+        self.type = self.tree.item(self.task_index)['values'][1]
+        self.namefile = self.tree.item(self.task_index)['values'][2]
+        self.namefile = self.namefile[8:]
+        self.client.send(
+            str(["DOWNLOAD", self.user_info[1], self.id, self.type]).encode(FORMAT))
+        with open(self.namefile, 'wb') as f:
+            data = self.client.recv(41000000)
+            f.write(data)
+            f.close
 
     def add_file(self):
         file_path = askopenfilename(title='Select File',
