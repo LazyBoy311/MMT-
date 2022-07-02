@@ -40,5 +40,16 @@
                 "name": "gach-the-xam-nhat-mo-phang-10x20-m1202y.jpg"
             }
         ]
+    },
+    "tunglam": {
+        "note": [
+            {
+                "_id": 1,
+                "title": "DCM PHAT",
+                "content": "CHAM VCL"
+            }
+        ],
+        "file": [],
+        "image": []
     }
 }

@@ -416,11 +416,11 @@ def handle(client):
             else:
                 pass
         except:
-            if client in clients:
-                index = clients.index(client)
-                clients.remove(client)
-                users.remove(users[index])
-                client.close()
+            # if client in clients:
+            #     index = clients.index(client)
+            #     clients.remove(client)
+            #     users.remove(users[index])
+            client.close()
 
 
 def receive():

@@ -292,28 +292,31 @@ class NoteApp():
                                     filetypes=[('text files', '*.txt'),
                                                ('All files', '*.*')]
                                     )
-        file = file_path.split('/')
-        self.file = file[len(file) - 1]
-        while self.running:
-            self.user_file = str(
-                ["FILE", self.user_info[1], self.file, self.countID])
-            self.client.send(self.user_file.encode(FORMAT))
-            response = self.client.recv(2048).decode(FORMAT)
-            if response == "File successfully created!":
-                with open(file_path, 'rb') as f:
-                    self.client.send(f.read())
-                    f.close()
-                if self.gui_done:
-                    self.tree.insert('', 'end', values=(
-                        self.countID, "File", f"[Name]: {self.file}"))
-                    self.countID += 1
-                    messagebox.showinfo(None, response)
+        self.file = file_path.split('/')
+        self.file = self.file[len(self.file) - 1]
+        if self.file != "":
+            while self.running:
+                self.user_file = str(
+                    ["FILE", self.user_info[1], self.file, self.countID])
+                self.client.send(self.user_file.encode(FORMAT))
+                response = self.client.recv(2048).decode(FORMAT)
+                if response == "File successfully created!":
+                    with open(file_path, 'rb') as f:
+                        self.client.send(f.read())
+                        f.close()
+                    if self.gui_done:
+                        self.tree.insert('', 'end', values=(
+                            self.countID, "File", f"[Name]: {self.file}"))
+                        self.countID += 1
+                        messagebox.showinfo(None, response)
+                        break
+                elif response == "This title is already exist":
+                    messagebox.showwarning(
+                        title="Warning!", message="This title is already exist")
                     break
-            elif response == "This title is already exist":
-                messagebox.showwarning(
-                    title="Warning!", message="This title is already exist")
-                break
-            else:
-                messagebox.showwarning(
-                    title="Warning!", message="You must enter a file!")
-                break
+                else:
+                    messagebox.showwarning(
+                        title="Warning!", message="You must enter a file!")
+                    break
+        else:
+            pass
