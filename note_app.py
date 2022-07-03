@@ -9,6 +9,7 @@ import socket
 import threading
 import json
 import os
+import io
 
 HOST = '127.0.0.1'
 PORT = 1233
@@ -234,7 +235,7 @@ class NoteApp():
             response = self.client.recv(2048).decode(FORMAT)
             if response == "Image successfully created!":
                 with open(img_path, 'rb') as f:
-                    self.client.send(f.read())
+                    self.client.send(f.read().encode(FORMAT))
                     f.close()
                 if self.gui_done:
                     self.tree.insert('', 'end', values=(
@@ -260,15 +261,42 @@ class NoteApp():
             self.namefile = self.namefile[8:]
             self.client.send(
                 str(["VIEW", self.user_info[1], self.id, self.type]).encode(FORMAT))
-            with open(self.namefile, 'wb') as f:
-                data = self.client.recv(41000000)
-                f.write(data)
-                # os.remove(self.namefile)
-                f.close()
-            with open(self.namefile, 'rb') as f:
-                img = Image.open(f)
-                img.show()
-                f.close()
+            if self.type == "Image":
+                data = self.client.recv(4000000).decode(FORMAT)
+                img = io.BytesIO(data)
+                image = Image.open(img)
+                image.show()
+            elif self.type == "Text":
+                data = self.client.recv(4000000)
+                data = eval(data)
+                Topic = data[0]
+                Content = data[1]
+                self.win = Toplevel()
+                window_width = 500
+                window_height = 300
+                screen_width = self.win.winfo_screenwidth()
+                screen_height = self.win.winfo_screenheight()
+                position_top = int(screen_height / 4 - window_height / 4)
+                position_right = int(screen_width / 2 - window_width / 2)
+                self.win.geometry(
+                    f'{window_width}x{window_height}+{position_right}+{position_top}')
+                self.win.title('Text')
+                self.win.configure(background='white')
+                self.win.resizable(0, 0)
+
+                self.topic_label = Label(self.win, text='Topic:', font=(
+                    'Helvetica', 12, 'bold'), fg='black', bg='white')
+                self.topic_label.place(x=0, y=0)
+                self.topic_area = Label(self.win, text=Topic, font=(
+                    'Helvetica', 12, 'bold'), fg='black', bg='white')
+                self.topic_area.place(x=70, y=0)
+
+                self.input_label = Label(self.win, text='NOTES:', font=(
+                    'Helvetica', 12, 'bold'), fg='black', bg='white')
+                self.input_label.place(x=0, y=50)
+                self.input_area = Label(self.win, text=Content, font=(
+                    'Helvetica', 12, 'bold'), fg='black', bg='white')
+                self.input_area.place(x=70, y=50)
         except:
             messagebox.showwarning(
                 title="Warning!", message="You must select a note!")
@@ -311,7 +339,7 @@ class NoteApp():
             response = self.client.recv(2048).decode(FORMAT)
             if response == "File successfully created!":
                 with open(file_path, 'rb') as f:
-                    self.client.send(f.read())
+                    self.client.send(f.read().encode(FORMAT))
                     f.close()
                 if self.gui_done:
                     self.tree.insert('', 'end', values=(

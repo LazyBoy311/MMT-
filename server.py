@@ -367,7 +367,7 @@ def handle(client):
                             "Image successfully created!".encode(FORMAT))
                         add_new_image(name, image, IDimage)
                         with open(f'./user_data/{name}/' + image, 'wb') as f:
-                            data = client.recv(41000000)
+                            data = client.recv(41000000).decode(FORMAT)
                             f.write(data)
                             f.close
                     else:
@@ -395,7 +395,14 @@ def handle(client):
                                 client.send(f.read())
                                 f.close()
                             break
-
+                elif type == "Text":
+                    for user in users_note[username]["note"]:
+                        if user["_id"] == note_id:
+                            print(user["title"])
+                            print(user["content"])
+                            client.send(
+                                str([user["title"], user["content"]]).encode(FORMAT))
+                            break
             elif mode == "FILE":
                 name = user_data[1]
                 file = user_data[2]
@@ -407,7 +414,7 @@ def handle(client):
                             "File successfully created!".encode(FORMAT))
                         add_new_file(name, file, IDfile)
                         with open(f'./user_data/{name}/' + file, 'wb') as f:
-                            data = client.recv(4100000)
+                            data = client.recv(4100000).decode(FORMAT)
                             f.write(data)
                             f.close
                     else:
