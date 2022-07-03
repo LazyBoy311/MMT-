@@ -13,7 +13,7 @@ import io
 
 HOST = '127.0.0.1'
 PORT = 1233
-FORMAT = 'ascii'
+FORMAT = 'utf-8'
 
 
 class NoteApp():

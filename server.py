@@ -10,7 +10,7 @@ from PIL import Image
 ServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 HOST = '127.0.0.1'
 PORT = 1233
-FORMAT = 'ascii'
+FORMAT = 'utf-8'
 
 try:
     ServerSocket.bind((HOST, PORT))

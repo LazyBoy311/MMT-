@@ -10,7 +10,7 @@ import threading
 
 HOST = '127.0.0.1'
 PORT = 1233
-FORMAT = 'ascii'
+FORMAT = 'utf-8'
 
 
 class Client():
@@ -203,7 +203,7 @@ class Client():
 
     def sign_up(self):
         self.master = Toplevel()
-        SignUpPage(self.master)
+        SignUpPage(self.master, self.client)
 
     def stop(self):
         self.running = False

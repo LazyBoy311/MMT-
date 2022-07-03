@@ -3,10 +3,13 @@ from tkinter import messagebox
 from PIL import ImageTk, Image
 import socket
 
+FORMAT = 'utf-8'
+
 
 class SignUpPage:
-    def __init__(self, root):
+    def __init__(self, root, client):
         self.root = root
+        self.client = client
         self.root.title('Sign Up Page')
         self.root.geometry('925x500+300+200')
         self.root.config(bg='#fff')
@@ -113,13 +116,6 @@ class SignUpPage:
         self.confirm_code.config(show='•')
 
     def sign_up(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        HOST = '127.0.0.1'
-        PORT = 1233
-        FORMAT = 'ascii'
-
-        self.client.connect((HOST, PORT))
-
         self.username = self.user.get()
         self.password = self.code.get()
         self.confirm_pw = self.confirm_code.get()
