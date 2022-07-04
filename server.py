@@ -117,27 +117,6 @@ def del_note(username, note_index, type):
     file.close()
 
 
-# def view_note(username, note_id, type):
-#     file = open("note.json")
-#     users_note = json.load(file)
-#     if type == "Image":
-#         for user in users_note[username]["image"]:
-#             if user["_id"] == note_id:
-#                 with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
-#                     img = Image.open(f)
-#                     img.show()
-#                 f.close()
-#                 break
-#     elif type == "File":
-#         for user in users_note[username]["file"]:
-#             if user["_id"] == note_id:
-#                 with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
-#                     img = Image.open(f)
-#                     img.show()
-#                 f.close()
-#                 break
-
-
 def is_exist_note(username, title):
     file = open("note.json")
     users_note = json.load(file)
@@ -346,14 +325,14 @@ def handle(client):
                     for user in users_note[username]["image"]:
                         if user["_id"] == note_index:
                             with open(f"./user_data/{username}/{user['name']}", 'rb') as f:
-                                client.send(f.read().encode(FORMAT))
+                                client.send(f.read())
                                 f.close()
                             break
                 else:
                     for user in users_note[username]["file"]:
                         if user["_id"] == note_index:
                             with open(f"./user_data/{username}/{user['name']}", 'rb') as f:
-                                client.send(f.read().encode(FORMAT))
+                                client.send(f.read())
                                 f.close()
                             break
             elif mode == "IMAGE":

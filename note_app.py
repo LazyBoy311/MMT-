@@ -307,8 +307,8 @@ class NoteApp():
                 title="Warning!", message="You must select a note!")
 
     def download(self):
-        file_input = askdirectory(title="Select Folder")
-        if file_input == "":
+        file_path = askdirectory(title="Select Folder")
+        if file_path == "":
             messagebox.showwarning(
                 title="Warning!", message="You must enter a file!")
             return
@@ -317,11 +317,12 @@ class NoteApp():
             self.id = self.tree.item(self.task_index)['values'][0]
             self.type = self.tree.item(self.task_index)['values'][1]
             self.namefile = self.tree.item(self.task_index)['values'][2]
-            self.namefile = self.namefile[8:]
+            self.namefile = self.namefile.split('[Name]: ')
+            self.namefile = self.namefile[len(self.namefile) - 1]
             self.client.send(
                 str(["DOWNLOAD", self.user_info[1], self.id, self.type]).encode(FORMAT))
-            with open(f"{file_input}/{self.namefile}", 'wb') as f:
-                data = self.client.recv(41000000).encode(FORMAT)
+            with open(f"{file_path}/{self.namefile}", 'wb') as f:
+                data = self.client.recv(41000000)
                 f.write(data)
                 f.close()
         except:
