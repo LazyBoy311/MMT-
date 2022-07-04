@@ -2,6 +2,7 @@ from http import client
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
+from tkinter import scrolledtext
 from tkinter.filedialog import askdirectory, askopenfilename
 from tkinter.constants import *
 from PIL import ImageTk, Image
@@ -77,7 +78,7 @@ class NoteApp():
         # self.scrollbar_tasks.config(command=self.listbox_tasks.yview)
 
         #====================== Load Data ================================#
-        self.client_notes = self.client.recv(2048).decode(FORMAT)
+        self.client_notes = self.client.recv(4100000).decode(FORMAT)
         self.client_notes = eval(self.client_notes)
         notes = self.client_notes['note']
         files = self.client_notes['file']
@@ -235,7 +236,7 @@ class NoteApp():
             response = self.client.recv(2048).decode(FORMAT)
             if response == "Image successfully created!":
                 with open(img_path, 'rb') as f:
-                    self.client.send(f.read().encode(FORMAT))
+                    self.client.send(f.read())
                     f.close()
                 if self.gui_done:
                     self.tree.insert('', 'end', values=(
@@ -262,12 +263,12 @@ class NoteApp():
             self.client.send(
                 str(["VIEW", self.user_info[1], self.id, self.type]).encode(FORMAT))
             if self.type == "Image":
-                data = self.client.recv(4000000).decode(FORMAT)
+                data = self.client.recv(4100000)
                 img = io.BytesIO(data)
                 image = Image.open(img)
                 image.show()
             elif self.type == "Text":
-                data = self.client.recv(4000000)
+                data = self.client.recv(4100000)
                 data = eval(data)
                 Topic = data[0]
                 Content = data[1]
@@ -289,14 +290,18 @@ class NoteApp():
                 self.topic_label.place(x=0, y=0)
                 self.topic_area = Label(self.win, text=Topic, font=(
                     'Helvetica', 12, 'bold'), fg='black', bg='white')
-                self.topic_area.place(x=70, y=0)
+                self.topic_area.place(x=80, y=0)
 
                 self.input_label = Label(self.win, text='NOTES:', font=(
                     'Helvetica', 12, 'bold'), fg='black', bg='white')
                 self.input_label.place(x=0, y=50)
-                self.input_area = Label(self.win, text=Content, font=(
-                    'Helvetica', 12, 'bold'), fg='black', bg='white')
-                self.input_area.place(x=70, y=50)
+
+                self.text_area = scrolledtext.ScrolledText(
+                    self.win, width=42, height=12, font=("Helvetica", 12))
+                # self.text_area.grid(column=0, pady=10, padx=10)
+                self.text_area.place(x=80, y=50)
+                self.text_area.insert(INSERT, Content)
+                self.text_area.config(state=DISABLED)
         except:
             messagebox.showwarning(
                 title="Warning!", message="You must select a note!")
@@ -316,7 +321,7 @@ class NoteApp():
             self.client.send(
                 str(["DOWNLOAD", self.user_info[1], self.id, self.type]).encode(FORMAT))
             with open(f"{file_input}/{self.namefile}", 'wb') as f:
-                data = self.client.recv(41000000)
+                data = self.client.recv(41000000).encode(FORMAT)
                 f.write(data)
                 f.close()
         except:
@@ -339,7 +344,7 @@ class NoteApp():
             response = self.client.recv(2048).decode(FORMAT)
             if response == "File successfully created!":
                 with open(file_path, 'rb') as f:
-                    self.client.send(f.read().encode(FORMAT))
+                    self.client.send(f.read())
                     f.close()
                 if self.gui_done:
                     self.tree.insert('', 'end', values=(

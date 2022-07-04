@@ -93,22 +93,22 @@ def del_note(username, note_index, type):
     users_note = json.load(file)
     #-------------------------------------------------#
     if type == "Text":
-        for user in users_note[username]["note"]:
-            if user["_id"] == note_index:
+        for note in users_note[username]["note"]:
+            if note["_id"] == note_index:
                 # note_index = users_note[username]["note"].index(user)
-                users_note[username]["note"].remove(user)
+                users_note[username]["note"].remove(note)
                 break
     elif type == "Image":
-        for user in users_note[username]["image"]:
-            if user["_id"] == note_index:
-                os.remove(f"./user_data/{username}/" + user["name"])
-                users_note[username]["image"].remove(user)
+        for img in users_note[username]["image"]:
+            if img["_id"] == note_index:
+                os.remove(f"./user_data/{username}/{img['name']}")
+                users_note[username]["image"].remove(img)
                 break
     else:
-        for user in users_note[username]["file"]:
-            if user["_id"] == note_index:
-                os.remove(f"./user_data/{username}/" + user["name"])
-                users_note[username]["file"].remove(user)
+        for file in users_note[username]["file"]:
+            if file["_id"] == note_index:
+                os.remove(f"./user_data/{username}/{file['name']}")
+                users_note[username]["file"].remove(file)
                 break
     #-------------------------------------------------#
     json_obj = json.dumps(users_note, indent=4)
@@ -215,7 +215,7 @@ if check_empty("note.json"):
 def handle(client):
     while True:
         try:
-            user_data = client.recv(2048).decode(FORMAT)
+            user_data = client.recv(4100000).decode(FORMAT)
             user_data = eval(user_data)
             mode = user_data[0]
             # ------------------- Database ------------------------------ #
@@ -345,15 +345,15 @@ def handle(client):
                 if type == "Image":
                     for user in users_note[username]["image"]:
                         if user["_id"] == note_index:
-                            with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
-                                client.send(f.read())
+                            with open(f"./user_data/{username}/{user['name']}", 'rb') as f:
+                                client.send(f.read().encode(FORMAT))
                                 f.close()
                             break
                 else:
                     for user in users_note[username]["file"]:
                         if user["_id"] == note_index:
-                            with open(f"./user_data/{username}/" + user["name"], 'rb') as f:
-                                client.send(f.read())
+                            with open(f"./user_data/{username}/{user['name']}", 'rb') as f:
+                                client.send(f.read().encode(FORMAT))
                                 f.close()
                             break
             elif mode == "IMAGE":
@@ -367,9 +367,9 @@ def handle(client):
                             "Image successfully created!".encode(FORMAT))
                         add_new_image(name, image, IDimage)
                         with open(f'./user_data/{name}/' + image, 'wb') as f:
-                            data = client.recv(41000000).decode(FORMAT)
+                            data = client.recv(41000000)
                             f.write(data)
-                            f.close
+                            f.close()
                     else:
                         client.send(
                             "This title is already exist".encode(FORMAT))
@@ -384,22 +384,20 @@ def handle(client):
                     for user in users_note[username]["image"]:
                         # print(f'./user_data/{username}/' + user["name"])
                         if user["_id"] == note_id:
-                            with open(f'./user_data/{username}/' + user["name"], 'rb') as f:
+                            with open(f'./user_data/{username}/{user["name"]}', 'rb') as f:
                                 client.send(f.read())
                                 f.close()
                             break
                 elif type == "File":
                     for user in users_note[username]["file"]:
                         if user["_id"] == note_id:
-                            with open(f'./user_data/{username}/' + user["name"], 'rb') as f:
-                                client.send(f.read())
+                            with open(f'./user_data/{username}/{user["name"]}', 'rb') as f:
+                                client.send(f.read().encode(FORMAT))
                                 f.close()
                             break
                 elif type == "Text":
                     for user in users_note[username]["note"]:
                         if user["_id"] == note_id:
-                            print(user["title"])
-                            print(user["content"])
                             client.send(
                                 str([user["title"], user["content"]]).encode(FORMAT))
                             break
@@ -414,9 +412,9 @@ def handle(client):
                             "File successfully created!".encode(FORMAT))
                         add_new_file(name, file, IDfile)
                         with open(f'./user_data/{name}/' + file, 'wb') as f:
-                            data = client.recv(4100000).decode(FORMAT)
+                            data = client.recv(4100000)
                             f.write(data)
-                            f.close
+                            f.close()
                     else:
                         client.send(
                             "This title is already exist".encode(FORMAT))
