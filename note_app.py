@@ -227,6 +227,7 @@ class NoteApp():
                                    filetypes=[("image", ".jpeg"),
                                               ("image", ".png"),
                                               ("image", ".jpg")])
+        if img_path == "": return
         img = img_path.split('/')
         self.image = img[len(img) - 1]
         while self.running:
