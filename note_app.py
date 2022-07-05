@@ -46,9 +46,7 @@ class NoteApp():
         self.frame.place(x=30, y=140)
 
         #================== List Notes ======================#
-        # self.tree = ttk.Treeview(self.root, show='headings')
         columns = ('id', 'type', 'content')
-        # self.tree['columns'] = ('id', 'type', 'content')
         self.tree = ttk.Treeview(
             self.root, columns=columns, show='headings')
         self.tree.column("id", anchor=CENTER, width=80)
@@ -66,16 +64,6 @@ class NoteApp():
             self.root, orient=VERTICAL, command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky='ns')
-
-        # self.listbox_tasks = Listbox(
-        #     self.frame, height=10, width=67, font=('Helvetica', 14, 'bold'), activestyle="none")
-        # self.listbox_tasks.pack(side=LEFT)
-
-        # self.scrollbar_tasks = Scrollbar(self.frame)
-        # self.scrollbar_tasks.pack(side=RIGHT, fill=Y)
-
-        # self.listbox_tasks.config(yscrollcommand=self.scrollbar_tasks.set)
-        # self.scrollbar_tasks.config(command=self.listbox_tasks.yview)
 
         #====================== Load Data ================================#
         self.client_notes = self.client.recv(4100000).decode(FORMAT)
@@ -179,7 +167,6 @@ class NoteApp():
 
     def write(self):
         while self.running:
-            # try:
             self.note_topic = f"{self.topic_area.get('1.0', 'end').strip()}"
             self.note = f"{self.input_area.get('1.0', 'end').strip()}"
             self.user_note = str(
@@ -203,12 +190,6 @@ class NoteApp():
                 messagebox.showwarning(
                     title="Warning!", message="You must enter a note!")
                 break
-            # except ConnectionAbortedError:
-            #     break
-            # except:
-            #     print("[ERROR]: An error occured!")
-            #     self.client.close()
-            #     break
 
     def delete(self):
         try:

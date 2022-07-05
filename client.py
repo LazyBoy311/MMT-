@@ -180,26 +180,26 @@ class Client():
 
     def sign_in(self):
         while self.running:
-            # try:
-            username = self.user.get()
-            password = self.code.get()
-            self.user_info = str(["SIGN-IN", username, password])
-            self.client.send(self.user_info.encode(FORMAT))
+            try:
+                username = self.user.get()
+                password = self.code.get()
+                self.user_info = str(["SIGN-IN", username, password])
+                self.client.send(self.user_info.encode(FORMAT))
 
-            response = self.client.recv(2048).decode(FORMAT)
-            messagebox.showinfo(None, response)
+                response = self.client.recv(2048).decode(FORMAT)
+                messagebox.showinfo(None, response)
 
-            if response == "Login successful!":
-                if self.gui_done:
-                    NoteApp(self.root, self.client, self.user_info)
-            else:
+                if response == "Login successful!":
+                    if self.gui_done:
+                        NoteApp(self.root, self.client, self.user_info)
+                else:
+                    break
+            except ConnectionAbortedError:
                 break
-            # except ConnectionAbortedError:
-            #     break
-            # except:
-            #     print("[ERROR]: An error occured!")
-            #     self.client.close()
-            #     break
+            except:
+                print("[ERROR]: An error occured!")
+                self.client.close()
+                break
 
     def sign_up(self):
         self.master = Toplevel()

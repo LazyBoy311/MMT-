@@ -1,8 +1,6 @@
 import socket
 import os
 import threading
-import hashlib
-from uuid import uuid4
 import re
 import json
 from PIL import Image
@@ -338,7 +336,6 @@ def handle(client):
                 else:
                     for user in users_note[username]["note"]:
                         if user["_id"] == note_index:
-                            print(1)
                             client.send(
                                 str([user["title"], user["content"]]).encode(FORMAT))
                             break
@@ -407,11 +404,9 @@ def handle(client):
             else:
                 pass
         except:
-            # if client in clients:
-            #     index = clients.index(client)
-            #     clients.remove(client)
-            #     users.remove(users[index])
-            client.close()
+            if client in clients:
+                clients.remove(client)
+                client.close()
 
 
 def receive():
