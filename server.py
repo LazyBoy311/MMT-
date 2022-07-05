@@ -328,12 +328,19 @@ def handle(client):
                                 client.send(f.read())
                                 f.close()
                             break
-                else:
+                elif type == "File":
                     for user in users_note[username]["file"]:
                         if user["_id"] == note_index:
                             with open(f"./user_data/{username}/{user['name']}", 'rb') as f:
                                 client.send(f.read())
                                 f.close()
+                            break
+                else:
+                    for user in users_note[username]["note"]:
+                        if user["_id"] == note_index:
+                            print(1)
+                            client.send(
+                                str([user["title"], user["content"]]).encode(FORMAT))
                             break
             elif mode == "IMAGE":
                 name = user_data[1]

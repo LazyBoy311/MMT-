@@ -227,7 +227,8 @@ class NoteApp():
                                    filetypes=[("image", ".jpeg"),
                                               ("image", ".png"),
                                               ("image", ".jpg")])
-        if img_path == "": return
+        if img_path == "":
+            return
         img = img_path.split('/')
         self.image = img[len(img) - 1]
         while self.running:
@@ -317,15 +318,25 @@ class NoteApp():
             self.task_index = self.tree.selection()[0]
             self.id = self.tree.item(self.task_index)['values'][0]
             self.type = self.tree.item(self.task_index)['values'][1]
-            self.namefile = self.tree.item(self.task_index)['values'][2]
-            self.namefile = self.namefile.split('[Name]: ')
-            self.namefile = self.namefile[len(self.namefile) - 1]
             self.client.send(
                 str(["DOWNLOAD", self.user_info[1], self.id, self.type]).encode(FORMAT))
-            with open(f"{file_path}/{self.namefile}", 'wb') as f:
-                data = self.client.recv(41000000)
-                f.write(data)
+            if self.type == "Text":
+                data = self.client.recv(41000000).decode(FORMAT)
+                data = eval(data)
+                print(data)
+                Topic = data[0]
+                Content = data[1]
+                with open(f'{file_path}/{Topic}.txt', 'w') as f:
+                    f.write(Content)
                 f.close()
+            else:
+                self.namefile = self.tree.item(self.task_index)['values'][2]
+                self.namefile = self.namefile.split('[Name]: ')
+                self.namefile = self.namefile[len(self.namefile) - 1]
+                with open(f"{file_path}/{self.namefile}", 'wb') as f:
+                    data = self.client.recv(41000000)
+                    f.write(data)
+                    f.close()
         except:
             messagebox.showwarning(
                 title="Warning!", message="You must enter a file!")
