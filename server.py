@@ -4,6 +4,7 @@ import threading
 import re
 import json
 from PIL import Image
+
 # Create Socket (TCP) Connection
 ServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
 HOST = '127.0.0.1'
@@ -87,13 +88,12 @@ def add_new_file(username, files, fileID):
 
 
 def del_note(username, note_index, type):
-    file = open("note.json")
-    users_note = json.load(file)
+    input_file = open("note.json")
+    users_note = json.load(input_file)
     #-------------------------------------------------#
     if type == "Text":
         for note in users_note[username]["note"]:
             if note["_id"] == note_index:
-                # note_index = users_note[username]["note"].index(user)
                 users_note[username]["note"].remove(note)
                 break
     elif type == "Image":
@@ -112,7 +112,7 @@ def del_note(username, note_index, type):
     json_obj = json.dumps(users_note, indent=4)
     with open("note.json", "w") as outfile:
         outfile.write(json_obj)
-    file.close()
+    input_file.close()
 
 
 def is_exist_note(username, title):
@@ -177,6 +177,18 @@ def check_empty(filename):
     if os.stat(filename).st_size == 0:
         return True
     return False
+
+
+if not os.path.exists('./user.json'):
+    with open('./user.json', 'w'):
+        pass
+
+if not os.path.exists('./note.json'):
+    with open('./note.json', 'w'):
+        pass
+
+if not os.path.exists("user_data"):
+    os.mkdir('./user_data')
 
 
 if check_empty("user.json"):
